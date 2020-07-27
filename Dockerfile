@@ -3,7 +3,7 @@ FROM ubuntu:18.04
 ENV ANDROID_HOME="/opt/android-sdk" \
     ANDROID_NDK="/opt/android-ndk" \
     FLUTTER_HOME="/opt/flutter" \
-    JAVA_HOME=/usr/lib/jvm/java-8-openjdk-amd64/
+    JAVA_HOME=/usr/lib/jvm/java-14-openjdk-amd64/
 
 ENV TZ=America/Los_Angeles
 
@@ -63,7 +63,7 @@ RUN apt-get update -qq > /dev/null && \
         m4 \
         ncurses-dev \
         ocaml \
-        openjdk-8-jdk \
+        openjdk-14-jdk \
         openssh-client \
         pkg-config \
         ruby-full \
