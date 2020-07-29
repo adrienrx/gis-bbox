@@ -3,7 +3,7 @@ FROM ubuntu:18.04
 ENV ANDROID_HOME="/opt/android-sdk" \
     ANDROID_NDK="/opt/android-ndk" \
     FLUTTER_HOME="/opt/flutter" \
-    JAVA_HOME=/usr/lib/jvm/java-14-openjdk-amd64/
+    JAVA_HOME=/usr/lib/jvm/java-8-openjdk-amd64/
 
 ENV TZ=America/Los_Angeles
 
@@ -63,7 +63,6 @@ RUN apt-get update -qq > /dev/null && \
         m4 \
         ncurses-dev \
         ocaml \
-        openjdk-14-jdk \
         openssh-client \
         pkg-config \
         ruby-full \
@@ -73,36 +72,19 @@ RUN apt-get update -qq > /dev/null && \
         vim-tiny \
         wget \
         zip \
+        dirmngr \
         zlib1g-dev > /dev/null && \
     echo "set timezone" && \
     ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone && \
-    echo "nodejs, npm, cordova, ionic, react-native" && \
-    curl -sL -k https://deb.nodesource.com/setup_${NODE_VERSION} \
-        | bash - > /dev/null && \
-    apt-get install -qq nodejs > /dev/null && \
     apt-get clean > /dev/null && \
-    curl -sS -k https://dl.yarnpkg.com/debian/pubkey.gpg \
-        | apt-key add - > /dev/null && \
-    echo "deb https://dl.yarnpkg.com/debian/ stable main" \
-        | tee /etc/apt/sources.list.d/yarn.list > /dev/null && \
-    apt-get update -qq > /dev/null && \
-    apt-get install -qq yarn > /dev/null && \
-    rm -rf /var/lib/apt/lists/ && \
-    npm install --quiet -g npm > /dev/null && \
-    npm install --quiet -g \
-        bower \
-        cordova \
-        eslint \
-        gulp \
-        ionic \
-        jshint \
-        karma-cli \
-        mocha \
-        node-gyp \
-        npm-check-updates \
-        react-native-cli > /dev/null && \
-    npm cache clean --force > /dev/null && \
-    rm -rf /tmp/* /var/tmp/*
+    apt-key adv --keyserver keyserver.ubuntu.com --recv-keys EA8CACC073C3DB2A && \
+    add-apt-repository ppa:linuxuprising/java -y && \
+    add-apt-repository ppa:openjdk-r/ppa -y && \
+    apt-get update -qq > /dev/null
+
+#required to install sdk manager
+RUN echo "java 8" && \
+    apt-get install -qq openjdk-8-jdk > /dev/null
 
 # Install Android SDK
 RUN echo "sdk tools ${ANDROID_SDK_TOOLS_VERSION}" && \
@@ -111,13 +93,6 @@ RUN echo "sdk tools ${ANDROID_SDK_TOOLS_VERSION}" && \
     mkdir --parents "$ANDROID_HOME" && \
     unzip -q sdk-tools.zip -d "$ANDROID_HOME" && \
     rm --force sdk-tools.zip
-
-RUN echo "ndk ${ANDROID_NDK_VERSION}" && \
-    wget --quiet --output-document=android-ndk.zip \
-    "http://dl.google.com/android/repository/android-ndk-${ANDROID_NDK_VERSION}-linux-x86_64.zip" && \
-    mkdir --parents "$ANDROID_NDK_HOME" && \
-    unzip -q android-ndk.zip -d "$ANDROID_NDK" && \
-    rm --force android-ndk.zip
 
 # Install SDKs
 # Please keep these in descending order!
@@ -158,16 +133,16 @@ RUN echo "kotlin" && \
     bash -c "bash ./sdk.install.sh > /dev/null && source ~/.sdkman/bin/sdkman-init.sh && sdk install kotlin" && \
     rm -f sdk.install.sh
 
-RUN echo "Flutter sdk" && \
-    cd /opt && \
-    wget --quiet https://storage.googleapis.com/flutter_infra/releases/stable/linux/flutter_linux_1.17.1-stable.tar.xz -O flutter.tar.xz && \
-    tar xf flutter.tar.xz && \
-    flutter config --no-analytics && \
-    rm -f flutter.tar.xz
-
 # Copy sdk license agreement files.
 RUN mkdir -p $ANDROID_HOME/licenses
 COPY sdk/licenses/* $ANDROID_HOME/licenses/
+
+RUN echo "java 14" && \
+    apt-get install -qq openjdk-14-jdk > /dev/null
+
+RUN echo "switch path 8 > 14" && \
+    export JAVA_HOME=/usr/lib/jvm/java-14-openjdk-amd64 && \
+    export PATH=$PATH:$JAVA_HOME
 
 # Create some jenkins required directory to allow this image run with Jenkins
 RUN mkdir -p /var/lib/jenkins/workspace && \
@@ -176,35 +151,8 @@ RUN mkdir -p /var/lib/jenkins/workspace && \
     chmod 777 /var/lib/jenkins/workspace && \
     chmod 777 $ANDROID_HOME/.android
 
-# Install fastlane with bundler and Gemfile
-ENV BUNDLE_GEMFILE=/tmp/Gemfile
-
-COPY Gemfile /tmp/Gemfile
-
-RUN echo "fastlane" && \
-    gem install bundler --quiet --no-document > /dev/null && \
-    mkdir -p /.fastlane && \
-    chmod 777 /.fastlane && \
-    bundle install --quiet
-
-COPY README.md /README.md
-
-ARG BUILD_DATE=""
-ARG SOURCE_BRANCH=""
-ARG SOURCE_COMMIT=""
-ARG DOCKER_TAG=""
-
 ENV BUILD_DATE=${BUILD_DATE} \
     SOURCE_BRANCH=${SOURCE_BRANCH} \
     SOURCE_COMMIT=${SOURCE_COMMIT} \
-    DOCKER_TAG=${DOCKER_TAG}
-
-# labels, see http://label-schema.org/
-LABEL maintainer="Ming Chen"
-LABEL org.label-schema.schema-version="1.0"
-LABEL org.label-schema.name="mingc/android-build-box"
-LABEL org.label-schema.version="${DOCKER_TAG}"
-LABEL org.label-schema.usage="/README.md"
-LABEL org.label-schema.docker.cmd="docker run --rm -v `pwd`:/project mingc/android-build-box bash -c 'cd /project; ./gradlew build'"
-LABEL org.label-schema.build-date="${BUILD_DATE}"
-LABEL org.label-schema.vcs-ref="${SOURCE_COMMIT}@${SOURCE_BRANCH}"
+    DOCKER_TAG=${DOCKER_TAG} \
+    JAVA_HOME=/usr/lib/jvm/java-14-openjdk-amd64/
