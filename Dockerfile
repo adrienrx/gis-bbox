@@ -138,11 +138,11 @@ RUN echo "kotlin" && \
 RUN mkdir -p $ANDROID_HOME/licenses
 COPY sdk/licenses/* $ANDROID_HOME/licenses/
 
-RUN echo "java 14" && \
-    apt-get install -qq openjdk-14-jdk > /dev/null
+RUN echo "java 17" && \
+    apt-get install -qq openjdk-17-jdk > /dev/null
 
-RUN echo "switch path 8 > 14" && \
-    export JAVA_HOME=/usr/lib/jvm/java-14-openjdk-amd64 && \
+RUN echo "switch path 8 > 17" && \
+    export JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64 && \
     export PATH=$PATH:$JAVA_HOME
 
 # Create some jenkins required directory to allow this image run with Jenkins
@@ -156,4 +156,4 @@ ENV BUILD_DATE=${BUILD_DATE} \
     SOURCE_BRANCH=${SOURCE_BRANCH} \
     SOURCE_COMMIT=${SOURCE_COMMIT} \
     DOCKER_TAG=${DOCKER_TAG} \
-    JAVA_HOME=/usr/lib/jvm/java-14-openjdk-amd64/
+    JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64/
