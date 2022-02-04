@@ -104,6 +104,7 @@ RUN mkdir --parents "$HOME/.android/" && \
 
 RUN echo "platforms" && \
     yes | "$ANDROID_HOME"/tools/bin/sdkmanager \
+	"platforms;android-31" \
         "platforms;android-30" \
         "platforms;android-29" \
         "platforms;android-28" \
@@ -117,6 +118,7 @@ RUN echo "platform tools" && \
 
 RUN echo "build tools 25-30" && \
     yes | "$ANDROID_HOME"/tools/bin/sdkmanager \
+	"build-tools;31.0.0" \
 	"build-tools;30.0.2" \
         "build-tools;30.0.0" \
         "build-tools;29.0.3" "build-tools;29.0.2" \
