@@ -8,7 +8,7 @@ ENV ANDROID_HOME="/opt/android-sdk" \
 ENV TZ=America/Los_Angeles
 
 # Get the latest version from https://developer.android.com/studio/index.html
-ENV ANDROID_SDK_TOOLS_VERSION="4333796"
+ENV ANDROID_SDK_TOOLS_VERSION="9123335"
 
 # Get the latest version from https://developer.android.com/ndk/downloads/index.html
 ENV ANDROID_NDK_VERSION="r21c"
@@ -104,7 +104,9 @@ RUN mkdir --parents "$HOME/.android/" && \
 
 RUN echo "platforms" && \
     yes | "$ANDROID_HOME"/tools/bin/sdkmanager \
-	"platforms;android-31" \
+     "platforms;android-33" \
+        "platforms;android-32" \
+	    "platforms;android-31" \
         "platforms;android-30" \
         "platforms;android-29" \
         "platforms;android-28" \
@@ -118,6 +120,8 @@ RUN echo "platform tools" && \
 
 RUN echo "build tools 25-30" && \
     yes | "$ANDROID_HOME"/tools/bin/sdkmanager \
+    "build-tools;33.0.0" \
+    "build-tools;32.0.0" \
 	"build-tools;31.0.0" \
 	"build-tools;30.0.2" \
         "build-tools;30.0.0" \
