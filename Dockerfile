@@ -1,9 +1,12 @@
 FROM ubuntu:18.04
 
 ENV ANDROID_HOME="/opt/android-sdk" \
-    ANDROID_NDK="/opt/android-ndk" \
-    FLUTTER_HOME="/opt/flutter" \
-    JAVA_HOME=/usr/lib/jvm/java-8-openjdk-amd64/
+    ANDROID_SDK_HOME="/opt/android-sdk" \
+    ANDROID_SDK_ROOT="/opt/android-sdk" \
+    ANDROID_NDK="/opt/android-sdk/ndk/latest" \
+    ANDROID_NDK_ROOT="/opt/android-sdk/ndk/latest" \
+    FLUTTER_HOME="/opt/flutter"
+ENV ANDROID_SDK_MANAGER=${ANDROID_HOME}/cmdline-tools/latest/bin/sdkmanager
 
 ENV TZ=America/Los_Angeles
 
@@ -89,21 +92,25 @@ RUN echo "java 8" && \
 # Install Android SDK
 RUN echo "sdk tools ${ANDROID_SDK_TOOLS_VERSION}" && \
     wget --quiet --output-document=sdk-tools.zip \
-        "https://dl.google.com/android/repository/sdk-tools-linux-${ANDROID_SDK_TOOLS_VERSION}.zip" && \
+        "https://dl.google.com/android/repository/commandlinetools-linux-${ANDROID_SDK_TOOLS_VERSION}_latest.zip" && \
     mkdir --parents "$ANDROID_HOME" && \
     unzip -q sdk-tools.zip -d "$ANDROID_HOME" && \
+    cd "$ANDROID_HOME" && \
+    mv cmdline-tools latest && \
+    mkdir cmdline-tools && \
+    mv latest cmdline-tools && \
     rm --force sdk-tools.zip
 
 # Install SDKs
 # Please keep these in descending order!
 # The `yes` is for accepting all non-standard tool licenses.
-RUN mkdir --parents "$HOME/.android/" && \
+RUN mkdir --parents "$ANDROID_HOME/.android/" && \
     echo '### User Sources for Android SDK Manager' > \
-        "$HOME/.android/repositories.cfg" && \
-    yes | "$ANDROID_HOME"/tools/bin/sdkmanager --licenses > /dev/null
+        "$ANDROID_HOME/.android/repositories.cfg" && \
+    yes | $ANDROID_SDK_MANAGER --licenses > /dev/null
 
 RUN echo "platforms" && \
-    yes | "$ANDROID_HOME"/tools/bin/sdkmanager \
+    yes | $ANDROID_SDK_MANAGER \
      "platforms;android-33" \
         "platforms;android-32" \
 	    "platforms;android-31" \
@@ -115,11 +122,11 @@ RUN echo "platforms" && \
         "platforms;android-25" > /dev/null
 
 RUN echo "platform tools" && \
-    yes | "$ANDROID_HOME"/tools/bin/sdkmanager \
+    yes | $ANDROID_SDK_MANAGER \
         "platform-tools" > /dev/null
 
 RUN echo "build tools 25-30" && \
-    yes | "$ANDROID_HOME"/tools/bin/sdkmanager \
+    yes | $ANDROID_SDK_MANAGER \
     "build-tools;33.0.0" \
     "build-tools;32.0.0" \
 	"build-tools;31.0.0" \
@@ -133,7 +140,7 @@ RUN echo "build tools 25-30" && \
         "build-tools;25.0.1" "build-tools;25.0.0" > /dev/null
 
 RUN echo "emulator" && \
-    yes | "$ANDROID_HOME"/tools/bin/sdkmanager "emulator" > /dev/null
+    yes | $ANDROID_SDK_MANAGER "emulator" > /dev/null
 
 RUN echo "kotlin" && \
     wget --quiet -O sdk.install.sh "https://get.sdkman.io" && \
